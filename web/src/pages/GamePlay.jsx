@@ -3,13 +3,25 @@ import { dummyService } from "../services/DummyService";
 import { useSetting } from "../contexts/SettingContext";
 
 function GamePlay() {
+  const { setting } = useSetting();
+
+  return (
+    <div className="gameplay">
+      <h1 className="header">Abacus Practice</h1>
+      {setting.mode === "manual" && <ManualModeGame />}
+      {setting.mode === "flashing" && <FlashingModeGame />}
+    </div>
+  );
+}
+
+function ManualModeGame() {
+  const { setting, onRoundOver, setFetchingData, startGame, backToMain } = useSetting();
   const [numbers, setNumbers] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [displayedNumbers, setDisplayedNumbers] = useState([]);
   const [finalResult, setFinalResult] = useState(0);
   const [startTime, setStartTime] = useState(null);
   const [userResult, setUserResult] = useState();
-  const { setting, setFetchingData, startGame, onRoundOver, backToMain } = useSetting();
 
   const nextNumber = useCallback(() => {
     if (currentIndex < numbers.length - 1) {
@@ -33,6 +45,7 @@ function GamePlay() {
       setFetchingData(true);
       try {
         const data = dummyService.generateNumbers(2, setting.totalNumbers);
+        setUserResult(null)
         setFetchingData(false);
         setNumbers(data.numbers);
       } catch (error) {
@@ -69,27 +82,25 @@ function GamePlay() {
   }, [numbers]);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white">
-      <h1 className="text-3xl font-bold mb-4">Abacus Practice</h1>
-
-      <div className="text-center">
+    <>
+      <section className="show-number">
         <h2 className="text-2xl">Number: {numbers[currentIndex]}</h2>
-        <button onClick={nextNumber} className="bg-yellow-500 px-4 py-2 mt-4 rounded hover:bg-yellow-700">
-          Next
-        </button>
-        <hr />
         {displayedNumbers.map((displayedNumber) => (
-          <div>{displayedNumber}</div>
+          <div className="displayed-number">{displayedNumber}</div>
         ))}
-        <hr />
-      </div>
+        {numbers.length !== displayedNumbers.length && numbers.length !== 0 && (
+          <button className="next-number" type="button" onClick={nextNumber}>
+            Next
+          </button>
+        )}
+      </section>
       {numbers.length === displayedNumbers.length && numbers.length !== 0 && (
         <div>
           <input
             type="number"
             value={userResult}
             onChange={(e) => setUserResult(Number(e.target.value))}
-            className="p-2 text-black"
+            className="user-answer"
             autoFocus={true}
             onKeyUp={(e) => {
               if (e.key === "Enter") {
@@ -97,27 +108,41 @@ function GamePlay() {
               }
             }}
           />
-          <br />
+          {setting.roundOver ? (
+            userResult === finalResult ? (
+              <div className="answer-result">Correct ✅</div>
+            ) : (
+              <div className="answer-result">Wrong ❌</div>
+            )
+          ) : (
+            <></>
+          )}
         </div>
       )}
       {setting.roundOver && (
         <div className="text-center">
-          {userResult === finalResult ? <div>Correct ✅</div> : <div>Wrong ❌</div>}
-          <h2 className="text-2xl mb-4">Final Result: {Math.abs(finalResult)}</h2>
-          <button onClick={() => startGame()} className="bg-blue-500 px-4 py-2 rounded hover:bg-blue-700" disabled={setting.fetchingData}>
-            Play Again
+          {setting.roundOver && userResult !== finalResult && (
+            <h3>Correct answer: {Math.abs(finalResult)}</h3>
+          )}
+          <button
+            className="retry"
+            onClick={() => startGame()}
+            type="button"
+            disabled={setting.fetchingData}
+          >
+            Go On
           </button>
         </div>
       )}
-      <br />
-      <br />
-      <br />
-      <br />
-      <button onClick={() => backToMain()} className="bg-blue-500 px-4 py-2 rounded hover:bg-blue-700">
-        Rest
+      <button type="button" onClick={() => backToMain()}>
+        REST
       </button>
-    </div>
+    </>
   );
+}
+
+function FlashingModeGame() {
+  return <></>;
 }
 
 export default GamePlay;

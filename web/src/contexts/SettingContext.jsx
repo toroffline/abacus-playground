@@ -11,7 +11,8 @@ const SettingProvider = ({ children }) => {
     gameStarted: false,
     fetchingData: false,
     roundOver: true,
-    round: 0
+    round: 0,
+    mode: "manual"
   });
 
   function startGame() {
@@ -49,6 +50,10 @@ const SettingProvider = ({ children }) => {
     setSetting({ ...setting, fetchingData });
   }
 
+  function setMode(mode) {
+    setSetting({ ...setting, mode });
+  }
+
   return (
     <SettingContext.Provider
       value={{
@@ -57,6 +62,7 @@ const SettingProvider = ({ children }) => {
         setTotalNumbers,
         invertRecheckAnswer,
         setFetchingData,
+        setMode,
         onRoundOver,
         backToMain
       }}
