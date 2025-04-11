@@ -7,12 +7,15 @@ const useSetting = () => useContext(SettingContext);
 const SettingProvider = ({ children }) => {
   const [setting, setSetting] = useState({
     totalNumbers: 2,
+    digit: 2,
     recheckAnswer: true,
     gameStarted: false,
     fetchingData: false,
     roundOver: true,
     round: 0,
-    mode: "manual"
+    mode: "manual",
+    operationType: "mixed",
+    submittedAnswer: false,
   });
 
   function startGame() {
@@ -20,7 +23,8 @@ const SettingProvider = ({ children }) => {
       ...setting,
       gameStarted: true,
       roundOver: false,
-      round: setting.round + 1
+      round: setting.round + 1,
+      submittedAnswer: false,
     });
   }
 
@@ -54,6 +58,14 @@ const SettingProvider = ({ children }) => {
     setSetting({ ...setting, mode });
   }
 
+  function setOperationType(operationType) {
+    setSetting({ ...setting, operationType });
+  }
+
+  function submitAnswer() {
+    setSetting({ ...setting, submittedAnswer: true, roundOver: true });
+  }
+
   return (
     <SettingContext.Provider
       value={{
@@ -63,8 +75,10 @@ const SettingProvider = ({ children }) => {
         invertRecheckAnswer,
         setFetchingData,
         setMode,
+        setOperationType,
         onRoundOver,
-        backToMain
+        backToMain,
+        submitAnswer,
       }}
     >
       {" "}

@@ -1,10 +1,15 @@
 import { useSetting } from "../contexts/SettingContext";
 
 function Landing() {
-  const { setting, startGame, setTotalNumbers, invertRecheckAnswer, setMode } = useSetting();
+  const { setting, startGame, setTotalNumbers, invertRecheckAnswer, setMode, setOperationType } =
+    useSetting();
 
   function _setMode(mode) {
     setMode(mode === "flashing" ? "manual" : "flashing");
+  }
+
+  function _setOperationType(operationType) {
+    setOperationType(operationType === "mixed" ? "additionOnly" : "mixed");
   }
 
   return (
@@ -12,27 +17,33 @@ function Landing() {
       <div className="setting">
         <h1 className="header">Abacus Practice</h1>
         <section className="setting-round-no">
-          <label className="block mb-2">Enter Number of Rounds</label>
+          <label>Enter Number of Rounds</label>
           <p>{setting.totalNumbers}</p>
           <input
             type="range"
             min={1}
-            max={4}
+            max={50}
             value={setting.totalNumbers}
             onChange={(e) => setTotalNumbers(Number(e.target.value))}
-            className="p-2 text-black"
           />
         </section>
         <section className="setting-recheck-answer checkbox">
           <input
             className="setting-chk-recheck"
             type="checkbox"
-            min={1}
-            max={4}
             checked={setting.recheckAnswer}
             onChange={() => invertRecheckAnswer(!setting.recheckAnswer)}
           />
           <span>Recheck answer</span>
+        </section>
+        <section className="setting-operation-type checkbox">
+          <input
+            className="setting-chk-operation-type"
+            type="checkbox"
+            checked={setting.operationType === "mixed"}
+            onChange={() => _setOperationType(setting.operationType)}
+          />
+          <span>Include negative number (➖)</span>
         </section>
         <section className="setting-flash-number checkbox">
           <input
@@ -43,7 +54,7 @@ function Landing() {
             checked={setting.mode === "flashing"}
             onChange={() => _setMode(setting.mode)}
           />
-          <span>Flash number</span>
+          <span>Flashing mode</span>
         </section>
         <button type="button" onClick={() => startGame()}>
           START

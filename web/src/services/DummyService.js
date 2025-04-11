@@ -1,8 +1,8 @@
 class DummyService {
-    generateNumbers = (digit, number) => {
+    generateNumbers = (digit, number, includeNegativeNumber) => {
         const numbers = [];
         let total = 0;
-        const { min, max } = this.getBoundary(digit);
+        const { min, max } = this.getBoundary(digit, includeNegativeNumber);
         for (let i = 0; i < number; i++) {
             let num = 0;
             while (num == 0 || (num < 0 && Math.abs(num) > total)) {
@@ -25,11 +25,11 @@ class DummyService {
         return Math.trunc(Math.random() * (max - min) + min);
     };
 
-    getBoundary(digit) {
+    getBoundary(digit, includeNegativeNumber) {
         let bound = 1 * Math.pow(10, digit);
 
         return {
-            min: bound * -1,
+            min: includeNegativeNumber ? bound * -1 : 1,
             max: bound,
         };
     }

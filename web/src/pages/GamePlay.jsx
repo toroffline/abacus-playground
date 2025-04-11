@@ -3,19 +3,22 @@ import { dummyService } from "../services/DummyService";
 import { useSetting } from "../contexts/SettingContext";
 
 function GamePlay() {
-  const { setting } = useSetting();
+  const { setting, backToMain } = useSetting();
 
   return (
     <div className="gameplay">
       <h1 className="header">Abacus Practice</h1>
       {setting.mode === "manual" && <ManualModeGame />}
       {setting.mode === "flashing" && <FlashingModeGame />}
+      <button type="button" className="back-main" onClick={() => backToMain()}>
+        Time to rest 🍵
+      </button>
     </div>
   );
 }
 
 function ManualModeGame() {
-  const { setting, onRoundOver, setFetchingData, startGame, backToMain } = useSetting();
+  const { setting, onRoundOver, setFetchingData, startGame, submitAnswer } = useSetting();
   const [numbers, setNumbers] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [displayedNumbers, setDisplayedNumbers] = useState([]);
@@ -44,8 +47,13 @@ function ManualModeGame() {
     if (setting.gameStarted && setting.round > 0) {
       setFetchingData(true);
       try {
-        const data = dummyService.generateNumbers(2, setting.totalNumbers);
-        setUserResult(null)
+        console.log({ op: setting.operationType });
+        const data = dummyService.generateNumbers(
+          setting.digit,
+          setting.totalNumbers,
+          setting.operationType === "mixed"
+        );
+        setUserResult(null);
         setFetchingData(false);
         setNumbers(data.numbers);
       } catch (error) {
@@ -84,10 +92,18 @@ function ManualModeGame() {
   return (
     <>
       <section className="show-number">
-        <h2 className="text-2xl">Number: {numbers[currentIndex]}</h2>
-        {displayedNumbers.map((displayedNumber) => (
-          <div className="displayed-number">{displayedNumber}</div>
-        ))}
+        <h3 className="text-2xl">
+          Number <span> </span>
+          <small>
+            ({currentIndex + 1}/{setting.totalNumbers})
+          </small>
+          : {numbers[currentIndex]}
+        </h3>
+        <div className="displayed-number">
+          {displayedNumbers.map((displayedNumber) => (
+            <div className="displayed-number-item">{displayedNumber}</div>
+          ))}
+        </div>
         {numbers.length !== displayedNumbers.length && numbers.length !== 0 && (
           <button className="next-number" type="button" onClick={nextNumber}>
             Next
@@ -98,6 +114,7 @@ function ManualModeGame() {
         <div>
           <input
             type="number"
+            pattern="[0-9]*"
             value={userResult}
             onChange={(e) => setUserResult(Number(e.target.value))}
             className="user-answer"
@@ -108,7 +125,10 @@ function ManualModeGame() {
               }
             }}
           />
-          {setting.roundOver ? (
+          <button className="submit-user-answer" onClick={() => submitAnswer()}>
+            ➡️
+          </button>
+          {setting.submittedAnswer ? (
             userResult === finalResult ? (
               <div className="answer-result">Correct ✅</div>
             ) : (
@@ -129,14 +149,12 @@ function ManualModeGame() {
             onClick={() => startGame()}
             type="button"
             disabled={setting.fetchingData}
+            autoFocus={true}
           >
-            Go On
+            Next 🔥
           </button>
         </div>
       )}
-      <button type="button" onClick={() => backToMain()}>
-        REST
-      </button>
     </>
   );
 }
