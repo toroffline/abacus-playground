@@ -1,5 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
-import { dummyService } from "../services/DummyService";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useSetting } from "../contexts/SettingContext";
 
 function GamePlay() {
@@ -18,20 +17,20 @@ function GamePlay() {
 }
 
 function ManualModeGame() {
-  const { setting, onRoundOver, setFetchingData, startGame, submitAnswer } = useSetting();
+  const { setting, onRoundOver, setFetchingData, startGame, submitAnswer, fecthRandomNumber } =
+    useSetting();
   const [numbers, setNumbers] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [displayedNumbers, setDisplayedNumbers] = useState([]);
-  const [finalResult, setFinalResult] = useState(0);
+  const [answer, setAnswer] = useState(0);
   const [startTime, setStartTime] = useState(null);
-  const [userResult, setUserResult] = useState();
+  const [userAnswer, setUserAnswer] = useState();
 
   const nextNumber = useCallback(() => {
     if (currentIndex < numbers.length - 1) {
       const newIndex = currentIndex + 1;
       setCurrentIndex(newIndex);
       setDisplayedNumbers((prevNumbers) => [...prevNumbers, numbers[newIndex]]);
-      setFinalResult((prevResult) => prevResult + numbers[newIndex]);
     } else {
       onRoundOver();
       submitStats();
@@ -47,15 +46,11 @@ function ManualModeGame() {
     if (setting.gameStarted && setting.round > 0) {
       setFetchingData(true);
       try {
-        console.log({ op: setting.operationType });
-        const data = dummyService.generateNumbers(
-          setting.digit,
-          setting.totalNumbers,
-          setting.operationType === "mixed"
-        );
-        setUserResult(null);
-        setFetchingData(false);
+        const data = fecthRandomNumber();
         setNumbers(data.numbers);
+        setAnswer(data.answer);
+        setUserAnswer(null);
+        setFetchingData(false);
       } catch (error) {
         console.error("Failed to fetch numbers", error);
       }
@@ -84,7 +79,6 @@ function ManualModeGame() {
     if (numbers.length > 0) {
       setCurrentIndex(0);
       setDisplayedNumbers([numbers[0]]);
-      setFinalResult(numbers[0]);
       setStartTime(Date.now());
     }
   }, [numbers]);
@@ -92,7 +86,7 @@ function ManualModeGame() {
   return (
     <>
       <section className="show-number">
-        <h3 className="text-2xl">
+        <h3>
           Number <span> </span>
           <small>
             ({currentIndex + 1}/{setting.totalNumbers})
@@ -115,8 +109,8 @@ function ManualModeGame() {
           <input
             type="number"
             pattern="[0-9]*"
-            value={userResult}
-            onChange={(e) => setUserResult(Number(e.target.value))}
+            value={userAnswer}
+            onChange={(e) => setUserAnswer(Number(e.target.value))}
             className="user-answer"
             autoFocus={true}
             onKeyUp={(e) => {
@@ -129,7 +123,7 @@ function ManualModeGame() {
             ➡️
           </button>
           {setting.submittedAnswer ? (
-            userResult === finalResult ? (
+            userAnswer === answer ? (
               <div className="answer-result">Correct ✅</div>
             ) : (
               <div className="answer-result">Wrong ❌</div>
@@ -141,8 +135,8 @@ function ManualModeGame() {
       )}
       {setting.roundOver && (
         <div className="text-center">
-          {setting.roundOver && userResult !== finalResult && (
-            <h3>Correct answer: {Math.abs(finalResult)}</h3>
+          {setting.roundOver && userAnswer !== answer && (
+            <h3>Correct answer: {Math.abs(answer)}</h3>
           )}
           <button
             className="retry"
@@ -159,8 +153,153 @@ function ManualModeGame() {
   );
 }
 
+const startDelay = 1000;
+
 function FlashingModeGame() {
-  return <></>;
+  const { setting, fecthRandomNumber, submitAnswer, startGame } = useSetting();
+  const [countdown, setCountdown] = useState(startDelay);
+  const [flashingStarted, setFlashingStarted] = useState(false);
+  const [currentNumber, setCurrentNumber] = useState(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [numbers, setNumbers] = useState([]);
+  const [userAnswer, setUserAnswer] = useState();
+  const [answer, setAnswer] = useState();
+  const inputAnswerRef = useRef(null);
+
+  function onRetry() {
+    setFlashingStarted(false);
+    setNumbers([]);
+    setUserAnswer();
+    setCountdown(startDelay);
+    setCurrentIndex(0);
+    startGame();
+  }
+
+  function onSubmit() {
+    window.document.body.style.zoom = 1;
+    submitAnswer();
+  }
+
+  useEffect(() => {
+    if (setting.gameStarted) {
+      const data = fecthRandomNumber();
+      setNumbers(data.numbers);
+      setAnswer(data.answer);
+      setCountdown(startDelay);
+      setFlashingStarted(false);
+    }
+  }, [setting.gameStarted, setting.round]);
+
+  useEffect(() => {
+    if (countdown > 0 && setting.gameStarted) {
+      const interval = setInterval(() => {
+        setCountdown((prev) => prev - 1000);
+      }, 1000);
+
+      return () => clearInterval(interval);
+    }
+
+    if (countdown === 0 && setting.gameStarted) {
+      setFlashingStarted(true);
+    }
+  }, [countdown, setting.gameStarted, setting.round]);
+
+  useEffect(() => {
+    if (flashingStarted) {
+      // Show the first number immediately
+      setCurrentIndex(0);
+      setCurrentNumber(numbers[0]);
+    }
+  }, [flashingStarted, numbers]);
+
+  useEffect(() => {
+    let timer, delayAutoFocus;
+    if (flashingStarted && currentIndex <= numbers.length - 1) {
+      timer = setTimeout(() => {
+        const nextIndex = currentIndex + 1;
+        setCurrentIndex(nextIndex);
+        setCurrentNumber(numbers[nextIndex]);
+      }, setting.flashing.delayMs);
+
+      if (currentIndex > numbers.length) {
+        delayAutoFocus = setTimeout(() => {
+          inputAnswerRef.current?.focus();
+        }, 1000);
+      }
+    }
+
+    return () => {
+      clearInterval(timer);
+      clearInterval(delayAutoFocus);
+    };
+  }, [flashingStarted, numbers, currentIndex]);
+
+  return (
+    <>
+      <div>
+        {countdown > 0 && <h2>Starting in: {countdown / 1000}</h2>}
+        <section className="show-number">
+          {flashingStarted && currentNumber !== null && currentIndex <= numbers.length - 1 && (
+            <h3>
+              Number <span> </span>
+              <small>
+                ({currentIndex + 1}/{setting.totalNumbers})
+              </small>
+            </h3>
+          )}
+          {flashingStarted && currentNumber !== null && currentIndex <= numbers.length - 1 && (
+            <h1 className="flashing-number-item">{numbers[currentIndex]}</h1>
+          )}
+        </section>
+        {flashingStarted && currentIndex > numbers.length - 1 && (
+          <>
+            <input
+              ref={inputAnswerRef}
+              type="number"
+              pattern="[0-9]*"
+              value={userAnswer}
+              onChange={(e) => setUserAnswer(Number(e.target.value))}
+              className="user-answer"
+              autoFocus={true}
+              onKeyUp={(e) => {
+                if (e.key === "Enter") {
+                  submitAnswer();
+                }
+              }}
+            />
+            <button className="submit-user-answer" tabIndex={-1} onClick={() => onSubmit()}>
+              ➡️
+            </button>
+            {setting.submittedAnswer ? (
+              userAnswer === answer ? (
+                <div className="answer-result">Correct ✅</div>
+              ) : (
+                <div className="answer-result">Wrong ❌</div>
+              )
+            ) : (
+              <></>
+            )}
+            {setting.roundOver && (
+              <div className="text-center">
+                {setting.roundOver && userAnswer !== answer && (
+                  <h3>Correct answer: {Math.abs(answer)}</h3>
+                )}
+                <button
+                  className="retry"
+                  onClick={() => onRetry()}
+                  type="button"
+                  disabled={setting.fetchingData}
+                  autoFocus={true}
+                >
+                  Next 🔥
+                </button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </>
+  );
 }
 
 export default GamePlay;

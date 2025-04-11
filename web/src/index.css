@@ -63,6 +63,10 @@ section[class^="setting-"] {
     margin-bottom: 3rem;
 }
 
+input[type="number"] {
+    font-size: 16px;
+}
+
 input[type="range"] {
     transform: scale(1.5);
 }
@@ -151,4 +155,8 @@ button[type="button"] {
 .back-main {
     margin-top: auto;
     margin-bottom: 2rem;
+}
+
+.flashing-number-item {
+    margin-top: 2rem;
 }

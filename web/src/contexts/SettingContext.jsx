@@ -1,4 +1,5 @@
 import { createContext, useContext, useState } from "react";
+import { dummyService } from "../services/DummyService";
 
 const SettingContext = createContext();
 
@@ -13,10 +14,27 @@ const SettingProvider = ({ children }) => {
     fetchingData: false,
     roundOver: true,
     round: 0,
-    mode: "manual",
-    operationType: "mixed",
+    mode: "flashing",
+    operationType: "additionOnly",
     submittedAnswer: false,
+    flashing: {
+      delayMs: 1000,
+    },
   });
+
+  function setFlashingDelayMs(delayMs) {
+    setSetting({...setting, flashing: {...setting.flashing, delayMs: delayMs}})
+  }
+
+  function fecthRandomNumber() {
+    const data = dummyService.generateNumbers(
+      setting.digit,
+      setting.totalNumbers,
+      setting.operationType === "mixed"
+    );
+
+    return data;
+  }
 
   function startGame() {
     setSetting({
@@ -46,6 +64,10 @@ const SettingProvider = ({ children }) => {
     setSetting({ ...setting, totalNumbers });
   }
 
+  function setDigit(digit) {
+    setSetting({ ...setting, digit });
+  }
+
   function invertRecheckAnswer() {
     setSetting({ ...setting, recheckAnswer: !setting.recheckAnswer });
   }
@@ -72,6 +94,7 @@ const SettingProvider = ({ children }) => {
         setting,
         startGame,
         setTotalNumbers,
+        setDigit,
         invertRecheckAnswer,
         setFetchingData,
         setMode,
@@ -79,6 +102,8 @@ const SettingProvider = ({ children }) => {
         onRoundOver,
         backToMain,
         submitAnswer,
+        fecthRandomNumber,
+        setFlashingDelayMs
       }}
     >
       {" "}

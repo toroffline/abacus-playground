@@ -1,24 +1,22 @@
 class DummyService {
     generateNumbers = (digit, number, includeNegativeNumber) => {
         const numbers = [];
-        let total = 0;
+        let answer = 0;
         const { min, max } = this.getBoundary(digit, includeNegativeNumber);
         for (let i = 0; i < number; i++) {
             let num = 0;
-            while (num == 0 || (num < 0 && Math.abs(num) > total)) {
+            while (num == 0 || (num < 0 && Math.abs(num) > answer)) {
                 num = this.getRandomArbitrary(min, max);
             }
 
-            if (num < 0 && Math.abs(num) > total) {
-                num = -total;
+            if (num < 0 && Math.abs(num) > answer) {
+                num = -answer;
             }
-            total += num;
+            answer += num;
             numbers.push(num);
         }
-        return {
-            numbers,
-            final_result: total,
-        };
+
+        return { numbers, answer };
     };
 
     getRandomArbitrary = (min, max) => {
