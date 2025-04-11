@@ -1,8 +1,10 @@
 {
     "name": "web-abacus-playground",
-    "private": true,
+    "private": false,
     "version": "0.0.0",
     "type": "module",
+    "author": "Narkkarux Tripiyaratana",
+    "license": "MIT",
     "scripts": {
         "dev": "vite",
         "dev-host": "vite --host",

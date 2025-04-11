@@ -1,6 +1,6 @@
 import { SettingProvider, useSetting } from "./contexts/SettingContext";
 import GamePlay from "./pages/GamePlay";
-import Landing from "./pages/landing";
+import Landing from "./pages/Landing";
 
 function App() {
   const { setting } = useSetting();
