@@ -1,0 +1,16 @@
+{
+  "name": "abacus-playground-server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Narkkarux Tripiyaratana",
+  "license": "ISC",
+  "description": "",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.4",
+    "postgres": "^3.4.5"
+  }
+}
