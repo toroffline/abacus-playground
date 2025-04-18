@@ -25,7 +25,7 @@ function Landing() {
       <div className="setting">
         <h1 className="header">Abacus Practice</h1>
         <section className="setting-digit">
-          <label>Enter digit</label>
+          <label>Set digit</label>
           <p>{setting.digit}</p>
           <input
             type="range"
@@ -37,7 +37,7 @@ function Landing() {
           />
         </section>
         <section className="setting-round-no">
-          <label>Enter Number of Rounds</label>
+          <label>Set Number of Rounds</label>
           <p>{setting.totalNumbers}</p>
           <input
             type="range"
@@ -93,7 +93,7 @@ function Landing() {
             />
           </section>
         )}
-        <button type="button" onClick={() => startGame()}>
+        <button className="btn-start" type="button" onClick={() => startGame()}>
           START
         </button>
       </div>

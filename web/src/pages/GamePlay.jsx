@@ -4,6 +4,10 @@ import { useSetting } from "../contexts/SettingContext";
 function GamePlay() {
   const { setting, backToMain } = useSetting();
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [])
+
   return (
     <div className="gameplay">
       <h1 className="header">Abacus Practice</h1>
@@ -85,75 +89,83 @@ function ManualModeGame() {
 
   return (
     <>
-      <section className="show-number">
-        <h3>
-          Number <span> </span>
-          <small>
-            ({currentIndex + 1}/{setting.totalNumbers})
-          </small>
-          : {numbers[currentIndex]}
-        </h3>
+      <div className="top">
+        <section className="show-number">
+          <div className="current-number">
+            {numbers[currentIndex]}
+          </div>
+          <h3>
+            Number <span> </span>
+            <small>
+              ({currentIndex + 1}/{setting.totalNumbers})
+            </small>
+          </h3>
+          {numbers.length !== displayedNumbers.length && numbers.length !== 0 && (
+            <button className="next-number" type="button" onClick={nextNumber}>
+              Next
+            </button>
+          )}
+        </section>
+
+      </div>
+
+      <div className="bottom">
         <div className="displayed-number">
           {displayedNumbers.map((displayedNumber) => (
             <div className="displayed-number-item">{displayedNumber}</div>
           ))}
         </div>
-        {numbers.length !== displayedNumbers.length && numbers.length !== 0 && (
-          <button className="next-number" type="button" onClick={nextNumber}>
-            Next
-          </button>
-        )}
-      </section>
-      {numbers.length === displayedNumbers.length && numbers.length !== 0 && (
-        <div>
-          <input
-            type="number"
-            pattern="[0-9]*"
-            value={userAnswer}
-            onChange={(e) => setUserAnswer(Number(e.target.value))}
-            className="user-answer"
-            autoFocus={true}
-            onKeyUp={(e) => {
-              if (e.key === "Enter") {
-                nextNumber();
-              }
-            }}
-          />
-          <button className="submit-user-answer" onClick={() => submitAnswer()}>
-            ➡️
-          </button>
-          {setting.submittedAnswer ? (
-            userAnswer === answer ? (
-              <div className="answer-result">Correct ✅</div>
+        {numbers.length === displayedNumbers.length && numbers.length !== 0 && (
+          <div>
+            <input
+              type="number"
+              pattern="[0-9]*"
+              value={userAnswer}
+              onChange={(e) => setUserAnswer(Number(e.target.value))}
+              className="user-answer"
+              autoFocus={true}
+              onKeyUp={(e) => {
+                if (e.key === "Enter") {
+                  nextNumber();
+                }
+              }}
+            />
+            <button className="submit-user-answer" onClick={() => submitAnswer()}>
+              ➡️
+            </button>
+            {setting.submittedAnswer ? (
+              userAnswer === answer ? (
+                <div className="answer-result">Correct ✅</div>
+              ) : (
+                <div className="answer-result">Wrong ❌</div>
+              )
             ) : (
-              <div className="answer-result">Wrong ❌</div>
-            )
-          ) : (
-            <></>
-          )}
-        </div>
-      )}
-      {setting.roundOver && (
-        <div className="text-center">
-          {setting.roundOver && userAnswer !== answer && (
-            <h3>Correct answer: {Math.abs(answer)}</h3>
-          )}
-          <button
-            className="retry"
-            onClick={() => startGame()}
-            type="button"
-            disabled={setting.fetchingData}
-            autoFocus={true}
-          >
-            Next 🔥
-          </button>
-        </div>
-      )}
+              <></>
+            )}
+          </div>
+        )}
+        {setting.roundOver && (
+          <div className="text-center">
+            {setting.roundOver && userAnswer !== answer && (
+              <h3>Correct answer: {Math.abs(answer)}</h3>
+            )}
+            <button
+              className="retry"
+              onClick={() => startGame()}
+              type="button"
+              disabled={setting.fetchingData}
+              autoFocus={true}
+            >
+              Next 🔥
+            </button>
+          </div>
+        )}
+      </div>
     </>
   );
 }
 
-const startDelay = 1000;
+const startDelay = 3000;
 
 function FlashingModeGame() {
   const { setting, fecthRandomNumber, submitAnswer, startGame } = useSetting();
@@ -165,6 +177,7 @@ function FlashingModeGame() {
   const [userAnswer, setUserAnswer] = useState();
   const [answer, setAnswer] = useState();
   const inputAnswerRef = useRef(null);
+  const hiddenRef = useRef(null);
 
   function onRetry() {
     setFlashingStarted(false);
@@ -213,29 +226,38 @@ function FlashingModeGame() {
   }, [flashingStarted, numbers]);
 
   useEffect(() => {
-    let timer, delayAutoFocus;
+    let timer;
     if (flashingStarted && currentIndex <= numbers.length - 1) {
       timer = setTimeout(() => {
         const nextIndex = currentIndex + 1;
         setCurrentIndex(nextIndex);
         setCurrentNumber(numbers[nextIndex]);
       }, setting.flashing.delayMs);
-
-      if (currentIndex > numbers.length) {
-        delayAutoFocus = setTimeout(() => {
-          inputAnswerRef.current?.focus();
-        }, 1000);
-      }
     }
 
     return () => {
       clearInterval(timer);
-      clearInterval(delayAutoFocus);
     };
   }, [flashingStarted, numbers, currentIndex]);
 
+  useEffect(() => {
+    if (flashingStarted && currentIndex > numbers.length - 1) {
+      // hiddenRef.current?.click();
+      setTimeout(() => {
+        // inputAnswerRef.current?.blur();
+        // inputAnswerRef.current?.focus();
+        hiddenRef.current?.click();
+      }, 500);
+    }
+  }, [flashingStarted, currentIndex]);
+
   return (
     <>
+      <button hidden ref={hiddenRef} onClick={
+        () => {
+          inputAnswerRef.current?.click();
+          inputAnswerRef.current?.focus();
+        }}>eiei</button>
       <div>
         {countdown > 0 && <h2>Starting in: {countdown / 1000}</h2>}
         <section className="show-number">
@@ -248,7 +270,7 @@ function FlashingModeGame() {
             </h3>
           )}
           {flashingStarted && currentNumber !== null && currentIndex <= numbers.length - 1 && (
-            <h1 className="flashing-number-item">{numbers[currentIndex]}</h1>
+            <div className="current-number flashing-number-item">{numbers[currentIndex]}</div>
           )}
         </section>
         {flashingStarted && currentIndex > numbers.length - 1 && (
@@ -259,8 +281,8 @@ function FlashingModeGame() {
               pattern="[0-9]*"
               value={userAnswer}
               onChange={(e) => setUserAnswer(Number(e.target.value))}
+              // onClick={() => alert('eiei')}
               className="user-answer"
-              autoFocus={true}
               onKeyUp={(e) => {
                 if (e.key === "Enter") {
                   submitAnswer();
@@ -279,6 +301,11 @@ function FlashingModeGame() {
             ) : (
               <></>
             )}
+            {setting.submittedAnswer && <div className="all-displayed-number">
+              {
+                numbers.join(',')
+              }
+            </div>}
             {setting.roundOver && (
               <div className="text-center">
                 {setting.roundOver && userAnswer !== answer && (
