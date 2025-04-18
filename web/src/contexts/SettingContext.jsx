@@ -23,7 +23,7 @@ const SettingProvider = ({ children }) => {
   });
 
   function setFlashingDelayMs(delayMs) {
-    setSetting({...setting, flashing: {...setting.flashing, delayMs: delayMs}})
+    setSetting({ ...setting, flashing: { ...setting.flashing, delayMs: delayMs } })
   }
 
   function fecthRandomNumber() {
@@ -106,8 +106,7 @@ const SettingProvider = ({ children }) => {
         setFlashingDelayMs
       }}
     >
-      {" "}
-      {children}{" "}
+      {children}
     </SettingContext.Provider>
   );
 };

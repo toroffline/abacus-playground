@@ -5,7 +5,7 @@ import Landing from "./pages/Landing";
 function App() {
   const { setting } = useSetting();
 
-  return <>{setting.gameStarted ? <GamePlay /> : <Landing />}</>;
+  return <div className="main">{setting.gameStarted ? <GamePlay /> : <Landing />}</div>;
 }
 
 export default App;
